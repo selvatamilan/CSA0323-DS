@@ -1,0 +1,124 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SIZE 10
+
+// Structure to represent a hash table entry
+struct HashEntry {
+    int key;
+    int value;
+    int isDeleted;
+};
+
+// Structure to represent a hash table
+struct HashTable {
+    struct HashEntry* table[SIZE];
+};
+
+// Function to create a new hash table entry
+struct HashEntry* createHashEntry(int key, int value) {
+    struct HashEntry* newEntry = (struct HashEntry*)malloc(sizeof(struct HashEntry));
+    if (newEntry == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    newEntry->key = key;
+    newEntry->value = value;
+    newEntry->isDeleted = 0;
+    return newEntry;
+}
+
+// Function to initialize a hash table
+void initializeHashTable(struct HashTable* ht) {
+    for (int i = 0; i < SIZE; i++) {
+        ht->table[i] = NULL;
+    }
+}
+
+// Hash function
+int hashCode(int key) {
+    return key % SIZE;
+}
+
+// Function to insert a key-value pair into the hash table
+void insert(struct HashTable* ht, int key, int value) {
+    int index = hashCode(key);
+    while (ht->table[index] != NULL && ht->table[index]->key != key) {
+        index = (index + 1) % SIZE; // Linear probing
+    }
+    if (ht->table[index] != NULL) {
+        printf("Key already exists, updating value\n");
+        ht->table[index]->value = value;
+    } else {
+        ht->table[index] = createHashEntry(key, value);
+    }
+}
+
+// Function to search for a key in the hash table
+int search(struct HashTable* ht, int key) {
+    int index = hashCode(key);
+    while (ht->table[index] != NULL) {
+        if (ht->table[index]->key == key && !ht->table[index]->isDeleted) {
+            return ht->table[index]->value;
+        }
+        index = (index + 1) % SIZE; // Linear probing
+    }
+    return -1; // Key not found
+}
+
+// Function to delete a key from the hash table
+void deleteKey(struct HashTable* ht, int key) {
+    int index = hashCode(key);
+    while (ht->table[index] != NULL) {
+        if (ht->table[index]->key == key && !ht->table[index]->isDeleted) {
+            ht->table[index]->isDeleted = 1;
+            printf("Key %d deleted successfully\n", key);
+            return;
+        }
+        index = (index + 1) % SIZE; // Linear probing
+    }
+    printf("Key not found\n");
+}
+
+// Function to display the hash table
+void display(struct HashTable* ht) {
+    printf("Hash Table:\n");
+    for (int i = 0; i < SIZE; i++) {
+        if (ht->table[i] != NULL) {
+            printf("Index %d: Key = %d, Value = %d\n", i, ht->table[i]->key, ht->table[i]->value);
+        } else {
+            printf("Index %d: Empty\n", i);
+        }
+    }
+}
+
+int main() {
+    struct HashTable ht;
+    initializeHashTable(&ht);
+
+    // Inserting key-value pairs
+    insert(&ht, 1, 10);
+    insert(&ht, 11, 20);
+    insert(&ht, 21, 30);
+    insert(&ht, 2, 40);
+
+    // Displaying the hash table
+    display(&ht);
+
+    // Searching for a key
+    int keyToSearch = 21;
+    int foundValue = search(&ht, keyToSearch);
+    if (foundValue != -1) {
+        printf("Value for key %d: %d\n", keyToSearch, foundValue);
+    } else {
+        printf("Key %d not found\n", keyToSearch);
+    }
+
+    // Deleting a key
+    deleteKey(&ht, 11);
+
+    // Displaying the hash table after deletion
+    display(&ht);
+
+    return 0;
+}
